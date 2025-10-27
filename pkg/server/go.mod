@@ -2,8 +2,6 @@ module server
 
 go 1.24.5
 
-replace Final-Project-Yandex/pkg/db => ../db
-
 require Final-Project-Yandex/pkg/db v0.0.0
 
 require (
