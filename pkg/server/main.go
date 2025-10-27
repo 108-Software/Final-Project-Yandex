@@ -12,7 +12,7 @@ import (
 
 func main() {
 
-	dbPath := "../db/scheduler.db"
+	dbPath := "./pkg/db/scheduler.db"
 	if envPath := os.Getenv("TODO_DBFILE"); envPath != "" {
 		dbPath = envPath
 	}
