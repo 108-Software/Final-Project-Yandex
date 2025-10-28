@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 	_ "modernc.org/sqlite"
 
-	"Final-Project-Yandex/pkg/db"
 	"Final-Project-Yandex/pkg/api"
+	"Final-Project-Yandex/pkg/db"
 )
 
 func main() {
@@ -32,24 +33,37 @@ func main() {
 	log.Println("База данных доступна")
 
 	r := gin.Default()
-	
-	// Регистрируем API маршруты
-	api.Init(r)
-	
+
+	// Сначала настраиваем статические файлы
 	r.Static("/css", "./web/css")
 	r.Static("/js", "./web/js")
 	r.Static("/images", "./web/images")
-	
-	r.StaticFile("/", "./web/index.html")
-	r.StaticFile("/index.html", "./web/index.html")
-	
+	r.StaticFile("/favicon.ico", "./web/favicon.ico")
+
+	// Затем API маршруты
+	api.Init(r)
+
+	// В самом конце - обработчики HTML
+	r.GET("/", func(c *gin.Context) {
+		c.File("./web/index.html")
+	})
+
+	r.GET("/index.html", func(c *gin.Context) {
+		c.File("./web/index.html")
+	})
+
+	// Обработчик для login.html
+	r.GET("/login.html", func(c *gin.Context) {
+		c.File("./web/login.html")
+	})
+
 	port := "7540"
 	if envPort := os.Getenv("TODO_PORT"); envPort != "" {
 		if p, err := strconv.Atoi(envPort); err == nil && p > 0 && p < 65536 {
 			port = envPort
 		}
 	}
-	
-	log.Printf("Сервер запущен на http://localhost:%s", port)	
+
+	log.Printf("Сервер запущен на http://localhost:%s", port)
 	r.Run(":" + port)
 }
