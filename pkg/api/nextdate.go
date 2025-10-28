@@ -1,4 +1,4 @@
-package db
+package api
 
 import (
 	"errors"
@@ -6,30 +6,24 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
+
+const dateFormat = "20060102"
 
 func main() {
 	now := time.Date(2024, 1, 26, 0, 0, 0, 0, time.UTC)
-
-	fmt.Println(NextDate(now, "20240229", "y"))
 	fmt.Println(NextDate(now, "20240113", "d 7"))
-	fmt.Println(NextDate(now, "20240116", "m 16,5"))
-	fmt.Println(NextDate(now, "20240201", "m -1,18"))
-	fmt.Println(NextDate(now, "20240101", "m -1"))
-	fmt.Println(NextDate(now, "20240101", "m 3 1,3,6"))
-
-	fmt.Println(NextDate(now, "20240101", "w 7"))
-	fmt.Println(NextDate(now, "20240101", "w 1,4,5"))
-	fmt.Println(NextDate(now, "20240101", "w 2,3"))
-	fmt.Println(NextDate(now, "20240101", "w 6"))
 }
 
-func NextDate(now time.Time, dstart string, repeat string) (string, error) {
+
+func NextDate(now time.Time, date string, repeat string) (string, error) {
 	if repeat == "" {
 		return "", errors.New("пустое правило повторения")
 	}
 
-	_, err := time.Parse("20060102", dstart)
+	startDate, err := time.Parse(dateFormat, date)
 	if err != nil {
 		return "", errors.New("некорректный формат исходной даты")
 	}
@@ -56,14 +50,14 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 			return "", errors.New("интервал дней должен быть от 1 до 400")
 		}
 
-		return nextDate_D(dstart, repeat), nil
+		return nextDateD(now, startDate, days), nil
 
 	case "y":
 		if len(parts) != 1 {
 			return "", errors.New("неверный формат для правила 'y'")
 		}
 
-		return nextDate_Y(dstart, repeat), nil
+		return nextDateY(now, startDate), nil
 
 	case "w":
 		if len(parts) != 2 {
@@ -71,22 +65,25 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		}
 
 		dayStrs := strings.Split(parts[1], ",")
-		for _, dayStr := range dayStrs {
+		days := make([]int, len(dayStrs))
+		for i, dayStr := range dayStrs {
 			day, err := strconv.Atoi(dayStr)
 			if err != nil || day < 1 || day > 7 {
 				return "", errors.New("недопустимое значение дня недели")
 			}
+			days[i] = day
 		}
 
-		return nextDate_W(now, dstart, repeat), nil
+		return nextDateW(now, startDate, days), nil
 
 	case "m":
 		if len(parts) < 2 {
-			return "", errors.New("неверный формат для правила 'm'")
+			return "", errors.New("неверный формат для правило 'm'")
 		}
 
 		dayStrs := strings.Split(parts[1], ",")
-		for _, dayStr := range dayStrs {
+		days := make([]int, len(dayStrs))
+		for i, dayStr := range dayStrs {
 			day, err := strconv.Atoi(dayStr)
 			if err != nil {
 				return "", errors.New("неверный формат дня месяца")
@@ -94,147 +91,64 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 			if (day < -2 || day > 31) || day == 0 {
 				return "", errors.New("недопустимый день месяца")
 			}
+			days[i] = day
 		}
 
+		var months []int
 		if len(parts) >= 3 {
 			monthStrs := strings.Split(parts[2], ",")
-			for _, monthStr := range monthStrs {
+			months = make([]int, len(monthStrs))
+			for i, monthStr := range monthStrs {
 				month, err := strconv.Atoi(monthStr)
 				if err != nil || month < 1 || month > 12 {
 					return "", errors.New("недопустимый месяц")
 				}
+				months[i] = month
 			}
 		}
 
-		return nextDate_M_complex(now, dstart, repeat), nil
+		return nextDateMComplex(now, startDate, days, months), nil
 
 	default:
 		return "", errors.New("неизвестная команда правила повторения")
 	}
 }
 
-func nextDate_D(dstart, repeat string) string {
-	startDate, err := time.Parse("20060102", dstart)
-	if err != nil {
-		return "Ошибка даты"
-	}
+func nextDateD(now time.Time, startDate time.Time, days int) string {
+	currentDate := startDate
 
-	numbers := repeat[2:]
-	daysToAdd, _ := strconv.Atoi(numbers)
-
-	resultDate := startDate.AddDate(0, 0, daysToAdd)
-	return resultDate.Format("20060102")
-}
-
-func nextDate_Y(dstart, repeat string) string {
-	startDate, err := time.Parse("20060102", dstart)
-	if err != nil {
-		return "Ошибка даты"
-	}
-
-	resultDate := startDate.AddDate(1, 0, 0)
-	return resultDate.Format("20060102")
-}
-
-func nextDate_M_complex(now time.Time, dstart, repeat string) string {
-	startDate, err := time.Parse("20060102", dstart)
-	if err != nil {
-		return "Ошибка даты"
-	}
-
-	parts := strings.Fields(repeat)
-	if len(parts) < 2 {
-		return "Ошибка: неверный формат правила"
-	}
-
-	daysStr := parts[1]
-
-	var months []int
-	if len(parts) >= 3 {
-		monthStrs := strings.Split(parts[2], ",")
-		for _, m := range monthStrs {
-			month, _ := strconv.Atoi(m)
-			if month >= 1 && month <= 12 {
-				months = append(months, month)
-			}
-		}
-	} else {
-		for i := 1; i <= 12; i++ {
-			months = append(months, i)
+	for {
+		currentDate = currentDate.AddDate(0, 0, days)
+		if currentDate.After(now) {
+			break
 		}
 	}
 
-	dayStrs := strings.Split(daysStr, ",")
-	var days []int
-	for _, d := range dayStrs {
-		day, _ := strconv.Atoi(d)
-		days = append(days, day)
-	}
+	return currentDate.Format(dateFormat)
+}
 
-	var possibleDates []time.Time
-	startYear := startDate.Year()
+func nextDateY(now time.Time, startDate time.Time) string {
+	currentDate := startDate
 
-	for year := startYear; year <= startYear+2; year++ {
-		for _, month := range months {
-			for _, day := range days {
-				var date time.Time
-				if day < 0 {
-					date = lastDayOfMonth(year, time.Month(month), day)
-					if date.Month() != time.Month(month) {
-						continue
-					}
-				} else {
-					date = time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
-					if date.Month() != time.Month(month) || date.Day() != day {
-						continue
-					}
-				}
-
-				if date.After(startDate) && date.After(now) {
-					possibleDates = append(possibleDates, date)
-				}
-			}
+	for {
+		currentDate = currentDate.AddDate(1, 0, 0)
+		if currentDate.After(now) {
+			break
 		}
 	}
 
-	var closestDate time.Time
-	found := false
+	return currentDate.Format(dateFormat)
+}
 
-	for _, date := range possibleDates {
-		if !found || date.Before(closestDate) {
-			closestDate = date
-			found = true
+func nextDateW(now time.Time, startDate time.Time, weekdays []int) string {
+	currentDate := startDate
+
+	for {
+		currentDate = currentDate.AddDate(0, 0, 1)
+		if !currentDate.After(now) {
+			continue
 		}
-	}
 
-	if !found {
-		return "Нет подходящей даты"
-	}
-
-	return closestDate.Format("20060102")
-}
-
-func lastDayOfMonth(year int, month time.Month, dayFromEnd int) time.Time {
-	firstDayNextMonth := time.Date(year, month+1, 1, 0, 0, 0, 0, time.UTC)
-	return firstDayNextMonth.AddDate(0, 0, dayFromEnd)
-}
-
-func nextDate_W(now time.Time, dstart, repeat string) string {
-	startDate, _ := time.Parse("20060102", dstart)
-
-	parts := strings.Fields(repeat)
-	daysStr := parts[1]
-
-	dayStrs := strings.Split(daysStr, ",")
-	var weekdays []int
-	for _, dayStr := range dayStrs {
-		day, _ := strconv.Atoi(dayStr)
-		weekdays = append(weekdays, day)
-	}
-
-	currentDate := now.AddDate(0, 0, 1)
-
-	for i := 0; i < 60; i++ {
 		currentWeekday := int(currentDate.Weekday())
 		if currentWeekday == 0 {
 			currentWeekday = 7
@@ -242,14 +156,87 @@ func nextDate_W(now time.Time, dstart, repeat string) string {
 
 		for _, targetWeekday := range weekdays {
 			if currentWeekday == targetWeekday {
-				if currentDate.After(startDate) {
-					return currentDate.Format("20060102")
-				}
+				return currentDate.Format(dateFormat)
+			}
+		}
+	}
+}
+
+func nextDateMComplex(now time.Time, startDate time.Time, days, months []int) string {
+	if len(months) == 0 {
+		months = make([]int, 12)
+		for i := 0; i < 12; i++ {
+			months[i] = i + 1
+		}
+	}
+
+	currentDate := startDate
+
+	for {
+		currentDate = currentDate.AddDate(0, 0, 1)
+		if !currentDate.After(now) {
+			continue
+		}
+
+		currentMonth := int(currentDate.Month())
+		currentDay := currentDate.Day()
+
+		monthMatch := false
+		for _, month := range months {
+			if currentMonth == month {
+				monthMatch = true
+				break
 			}
 		}
 
-		currentDate = currentDate.AddDate(0, 0, 1)
+		if !monthMatch {
+			continue
+		}
+
+		for _, day := range days {
+			if day < 0 {
+				lastDay := lastDayOfMonth(currentDate.Year(), time.Month(currentMonth), day)
+				if currentDate.Equal(lastDay) {
+					return currentDate.Format(dateFormat)
+				}
+			} else if currentDay == day {
+				return currentDate.Format(dateFormat)
+			}
+		}
+	}
+}
+
+func lastDayOfMonth(year int, month time.Month, dayFromEnd int) time.Time {
+	firstDayNextMonth := time.Date(year, month+1, 1, 0, 0, 0, 0, time.UTC)
+	return firstDayNextMonth.AddDate(0, 0, dayFromEnd)
+}
+
+func NextDateHandler(c *gin.Context) {
+	nowStr := c.Query("now")
+	date := c.Query("date")
+	repeat := c.Query("repeat")
+
+	if nowStr == "" || date == "" || repeat == "" {
+		c.JSON(400, gin.H{"error": "Отсутствуют обязательные параметры: now, date, repeat"})
+		return
 	}
 
-	return "Нет подходящей даты"
+	now, err := time.Parse(dateFormat, nowStr)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "Неверный формат параметра now"})
+		return
+	}
+
+	nextDate, err := NextDate(now, date, repeat)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	if nextDate == "" {
+		c.JSON(400, gin.H{"error": "Для указанного правила повторения нет подходящей даты"})
+		return
+	}
+
+	c.String(200, nextDate)
 }
