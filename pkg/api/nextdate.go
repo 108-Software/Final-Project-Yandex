@@ -1,21 +1,17 @@
 package api
 
 import (
+	"net/http"
+	"time"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
-	"time"
+
 
 	"github.com/gin-gonic/gin"
 )
 
 const dateFormat = "20060102"
-
-func main() {
-	now := time.Date(2024, 1, 26, 0, 0, 0, 0, time.UTC)
-	fmt.Println(NextDate(now, "20240113", "d 7"))
-}
 
 
 func NextDate(now time.Time, date string, repeat string) (string, error) {
@@ -217,26 +213,26 @@ func NextDateHandler(c *gin.Context) {
 	repeat := c.Query("repeat")
 
 	if nowStr == "" || date == "" || repeat == "" {
-		c.JSON(400, gin.H{"error": "Отсутствуют обязательные параметры: now, date, repeat"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Отсутствуют обязательные параметры: now, date, repeat"})
 		return
 	}
 
 	now, err := time.Parse(dateFormat, nowStr)
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Неверный формат параметра now"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный формат параметра now"})
 		return
 	}
 
 	nextDate, err := NextDate(now, date, repeat)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if nextDate == "" {
-		c.JSON(400, gin.H{"error": "Для указанного правила повторения нет подходящей даты"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Для указанного правила повторения нет подходящей даты"})
 		return
 	}
 
-	c.String(200, nextDate)
+	c.JSON(http.StatusOK, gin.H{"nextDate": nextDate})
 }
