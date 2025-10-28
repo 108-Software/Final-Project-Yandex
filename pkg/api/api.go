@@ -7,6 +7,7 @@ func Init(r *gin.Engine) {
 	apiGroup := r.Group("/api")
 	{
 		apiGroup.GET("/nextdate", NextDateHandler)
-		
+		apiGroup.POST("/task", AddTaskHandler)
 	}
+
 }
