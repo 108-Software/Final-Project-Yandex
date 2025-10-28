@@ -8,10 +8,10 @@ import (
 	_ "modernc.org/sqlite"
 
 	"Final-Project-Yandex/pkg/db"
+	"Final-Project-Yandex/pkg/api"
 )
 
 func main() {
-
 	dbPath := "./pkg/db/scheduler.db"
 	if envPath := os.Getenv("TODO_DBFILE"); envPath != "" {
 		dbPath = envPath
@@ -29,22 +29,27 @@ func main() {
 		log.Fatal("Соединение с базой данных не установлено")
 	}
 
-	log.Println("\nБаза данных доступна\n")
+	log.Println("База данных доступна")
 
 	r := gin.Default()
-	r.Static("/", "./web")
 	
-	port := "7540" // значение по умолчанию
+	// Регистрируем API маршруты
+	api.Init(r)
+	
+	r.Static("/css", "./web/css")
+	r.Static("/js", "./web/js")
+	r.Static("/images", "./web/images")
+	
+	r.StaticFile("/", "./web/index.html")
+	r.StaticFile("/index.html", "./web/index.html")
+	
+	port := "7540"
 	if envPort := os.Getenv("TODO_PORT"); envPort != "" {
 		if p, err := strconv.Atoi(envPort); err == nil && p > 0 && p < 65536 {
 			port = envPort
 		}
 	}
 	
-	
 	log.Printf("Сервер запущен на http://localhost:%s", port)	
 	r.Run(":" + port)
-	
-
 }
-
