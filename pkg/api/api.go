@@ -21,6 +21,10 @@ func Init(r *gin.Engine) {
 		apiGroup.GET("/nextdate", NextDateHandler)
 		apiGroup.GET("/tasks", TasksHandler)
 		apiGroup.POST("/task", AddTaskHandler)
+
+		apiGroup.GET("/task", GetTaskHandler)    
+        apiGroup.PUT("/task", UpdateTaskHandler) 
 	}
 
 }
+
