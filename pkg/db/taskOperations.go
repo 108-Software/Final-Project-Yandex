@@ -26,29 +26,24 @@ func GetTaskByID(id int) (*Task, error) {
 }
 
 
-// UpdateTask обновляет задачу
 func UpdateTask(task *Task) error {
     if DB == nil {
         return fmt.Errorf("база данных не инициализирована")
     }
     
-    // Проверяем существование задачи
     _, err := GetTaskByID(task.ID)
     if err != nil {
         return err
     }
     
-    // Проверяем валидность даты
     if !IsValidDate(task.Date) {
         return fmt.Errorf("неверный формат даты")
     }
     
-    // Проверяем, что заголовок не пустой
     if task.Title == "" {
         return fmt.Errorf("заголовок не может быть пустым")
     }
     
-    // Проверяем валидность repeat
     if task.Repeat != "" && !IsValidRepeat(task.Repeat) {
         return fmt.Errorf("неверный формат повторения")
     }
