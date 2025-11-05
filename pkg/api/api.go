@@ -24,6 +24,10 @@ func Init(r *gin.Engine) {
 
 		apiGroup.GET("/task", GetTaskHandler)    
         apiGroup.PUT("/task", UpdateTaskHandler) 
+
+		apiGroup.POST("/task/done", TaskDoneHandler)
+
+		apiGroup.DELETE("/task", DeleteTaskHandler)
 	}
 
 }
