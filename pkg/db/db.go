@@ -7,7 +7,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-var db *sql.DB
+var DB *sql.DB
 
 const schema = `
 CREATE TABLE scheduler (
@@ -26,19 +26,19 @@ func Init(dbFile string) error {
 	_, err := os.Stat(dbFile)
 	install := os.IsNotExist(err)
 
-	db, err = sql.Open("sqlite", dbFile)
+	DB, err = sql.Open("sqlite", dbFile)
 	if err != nil {
 		return err
 	}
 
 
-	if err := db.Ping(); err != nil {
+	if err := DB.Ping(); err != nil {
 		return err
 	}
 
 	
 	if install {
-		if _, err := db.Exec(schema); err != nil {
+		if _, err := DB.Exec(schema); err != nil {
 			return err
 		}
 	}
@@ -48,12 +48,12 @@ func Init(dbFile string) error {
 
 
 func GetDB() *sql.DB {
-	return db
+	return DB
 }
 
 func Close() error {
-	if db != nil {
-		return db.Close()
+	if DB != nil {
+		return DB.Close()
 	}
 	return nil
 }
