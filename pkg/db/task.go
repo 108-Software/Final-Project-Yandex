@@ -2,6 +2,7 @@ package db
 
 import (
     "time"
+    "strings"
 )
 
 type Task struct {
@@ -29,7 +30,51 @@ func AddTask(task *Task) (int64, error) {
     return id, nil
 }
 
+// IsValidDate проверяет валидность даты в формате 20060102
 func IsValidDate(dateStr string) bool {
+    if len(dateStr) != 8 {
+        return false
+    }
+    
+    // Проверяем, что все символы - цифры
+    for _, char := range dateStr {
+        if char < '0' || char > '9' {
+            return false
+        }
+    }
+    
+    // Пытаемся распарсить
     _, err := time.Parse("20060102", dateStr)
     return err == nil
+}
+
+func IsValidRepeat(repeat string) bool {
+    if repeat == "" {
+        return true // пустое значение - допустимо
+    }
+    
+    parts := strings.Fields(repeat)
+    if len(parts) < 2 {
+        return false
+    }
+    
+    switch parts[0] {
+    case "d": // ежедневно
+        if len(parts) != 2 {
+            return false
+        }
+        // Проверяем, что второй параметр - число
+        for _, char := range parts[1] {
+            if char < '0' || char > '9' {
+                return false
+            }
+        }
+        return true
+        
+    case "y", "w", "m": // ежегодно, еженедельно, ежемесячно
+        return len(parts) == 1
+        
+    default:
+        return false
+    }
 }
