@@ -9,7 +9,6 @@ import (
 	"Final-Project-Yandex/pkg/db"
 )
 
-// AddTaskHandler обработчик для добавления задачи
 func AddTaskHandler(c *gin.Context) {
 	var req struct {
 		Date    string `json:"date"`
@@ -54,7 +53,6 @@ func AddTaskHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"id": strconv.FormatInt(id, 10)})
 }
 
-// checkDate проверяет и корректирует дату задачи согласно ТЗ
 func checkDate(task *db.Task) error {
 	now := time.Now()
 	today := now.Format(dateFormat)
