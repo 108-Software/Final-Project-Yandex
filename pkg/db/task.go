@@ -30,27 +30,24 @@ func AddTask(task *Task) (int64, error) {
     return id, nil
 }
 
-// IsValidDate проверяет валидность даты в формате 20060102
 func IsValidDate(dateStr string) bool {
     if len(dateStr) != 8 {
         return false
     }
     
-    // Проверяем, что все символы - цифры
     for _, char := range dateStr {
         if char < '0' || char > '9' {
             return false
         }
     }
     
-    // Пытаемся распарсить
     _, err := time.Parse("20060102", dateStr)
     return err == nil
 }
 
 func IsValidRepeat(repeat string) bool {
     if repeat == "" {
-        return true // пустое значение - допустимо
+        return true
     }
     
     parts := strings.Fields(repeat)
@@ -59,11 +56,10 @@ func IsValidRepeat(repeat string) bool {
     }
     
     switch parts[0] {
-    case "d": // ежедневно
+    case "d": 
         if len(parts) != 2 {
             return false
         }
-        // Проверяем, что второй параметр - число
         for _, char := range parts[1] {
             if char < '0' || char > '9' {
                 return false
@@ -71,7 +67,7 @@ func IsValidRepeat(repeat string) bool {
         }
         return true
         
-    case "y", "w", "m": // ежегодно, еженедельно, ежемесячно
+    case "y", "w", "m": 
         return len(parts) == 1
         
     default:
