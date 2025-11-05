@@ -5,9 +5,6 @@ import (
     "time"
 )
 
-// SearchTasks возвращает список задач с учетом поиска
-// limit - максимальное количество возвращаемых записей
-// search - строка поиска (может быть текстом или датой в формате 02.01.2006)
 func SearchTasks(limit int, search string) ([]*Task, error) {
     if DB == nil {
         return nil, fmt.Errorf("база данных не инициализирована")
@@ -21,15 +18,12 @@ func SearchTasks(limit int, search string) ([]*Task, error) {
     var args []interface{}
     
     if search == "" {
-        // Если search пустой, работаем как обычная функция Tasks
         query = `SELECT id, date, title, comment, repeat FROM scheduler 
                  ORDER BY date ASC, id ASC 
                  LIMIT ?`
         args = []interface{}{limit}
     } else {
-        // Проверяем, является ли search датой в формате 02.01.2006
         if isDateSearch(search) {
-            // Преобразуем дату из 02.01.2006 в 20060102
             date, err := time.Parse("02.01.2006", search)
             if err == nil {
                 searchDate := date.Format("20060102")
@@ -39,7 +33,6 @@ func SearchTasks(limit int, search string) ([]*Task, error) {
                          LIMIT ?`
                 args = []interface{}{searchDate, limit}
             } else {
-                // Если не удалось распарсить дату, ищем как текст
                 query = `SELECT id, date, title, comment, repeat FROM scheduler 
                          WHERE title LIKE ? OR comment LIKE ? 
                          ORDER BY date ASC, id ASC 
@@ -48,7 +41,6 @@ func SearchTasks(limit int, search string) ([]*Task, error) {
                 args = []interface{}{searchPattern, searchPattern, limit}
             }
         } else {
-            // Поиск по тексту в заголовке или комментарии
             query = `SELECT id, date, title, comment, repeat FROM scheduler 
                      WHERE title LIKE ? OR comment LIKE ? 
                      ORDER BY date ASC, id ASC 
@@ -86,9 +78,7 @@ func SearchTasks(limit int, search string) ([]*Task, error) {
     return tasks, nil
 }
 
-// isDateSearch проверяет, является ли строка датой в формате 02.01.2006
 func isDateSearch(s string) bool {
-    // Проверяем базовую структуру: DD.MM.YYYY
     if len(s) != 10 {
         return false
     }
@@ -96,7 +86,6 @@ func isDateSearch(s string) bool {
         return false
     }
     
-    // Пытаемся распарсить
     _, err := time.Parse("02.01.2006", s)
     return err == nil
 }
