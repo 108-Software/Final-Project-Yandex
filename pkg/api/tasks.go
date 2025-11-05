@@ -9,17 +9,14 @@ import (
 )
 
 func TasksHandler(c *gin.Context) {
-    // Получаем параметр search из query string
     search := c.Query("search")
     
     var tasks []*db.Task
     var err error
     
     if search == "" {
-        // Используем старую функцию если search пустой
         tasks, err = db.Tasks(50)
     } else {
-        // Используем новую функцию поиска
         tasks, err = db.SearchTasks(50, search)
     }
     
@@ -30,7 +27,6 @@ func TasksHandler(c *gin.Context) {
         return
     }
     
-    // Преобразуем задачи из db.Task в TaskResponse со строковыми ID
     taskResponses := make([]*TaskResponse, 0, len(tasks))
     for _, task := range tasks {
         taskResponses = append(taskResponses, &TaskResponse{
@@ -48,9 +44,7 @@ func TasksHandler(c *gin.Context) {
 }
 
 
-// GetTaskHandler обработчик для GET /api/task
 func GetTaskHandler(c *gin.Context) {
-    // Получаем ID из query параметра
     idStr := c.Query("id")
     if idStr == "" {
         c.JSON(http.StatusBadRequest, gin.H{
@@ -59,7 +53,6 @@ func GetTaskHandler(c *gin.Context) {
         return
     }
     
-    // Конвертируем ID в int
     id, err := strconv.Atoi(idStr)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{
@@ -68,7 +61,6 @@ func GetTaskHandler(c *gin.Context) {
         return
     }
     
-    // Получаем задачу из БД
     task, err := db.GetTaskByID(id)
     if err != nil {
         c.JSON(http.StatusNotFound, gin.H{
@@ -77,7 +69,6 @@ func GetTaskHandler(c *gin.Context) {
         return
     }
     
-    // Преобразуем в ответ со строковым ID
     taskResponse := TaskResponse{
         ID:      strconv.Itoa(task.ID),
         Date:    task.Date,
@@ -90,11 +81,9 @@ func GetTaskHandler(c *gin.Context) {
 }
 
 
-// UpdateTaskHandler обработчик для PUT /api/task
 func UpdateTaskHandler(c *gin.Context) {
     var taskReq TaskResponse
     
-    // Парсим JSON из тела запроса
     if err := c.BindJSON(&taskReq); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{
             "error": "Неверный формат JSON",
@@ -102,7 +91,6 @@ func UpdateTaskHandler(c *gin.Context) {
         return
     }
     
-    // Проверяем обязательные поля
     if taskReq.ID == "" {
         c.JSON(http.StatusBadRequest, gin.H{
             "error": "Не указан идентификатор",
@@ -124,7 +112,6 @@ func UpdateTaskHandler(c *gin.Context) {
         return
     }
     
-    // Проверяем валидность даты
     if !db.IsValidDate(taskReq.Date) {
         c.JSON(http.StatusBadRequest, gin.H{
             "error": "Неверный формат даты",
@@ -132,7 +119,6 @@ func UpdateTaskHandler(c *gin.Context) {
         return
     }
     
-    // Проверяем длину заголовка (обычно есть ограничения)
     if len(taskReq.Title) > 255 {
         c.JSON(http.StatusBadRequest, gin.H{
             "error": "Слишком длинный заголовок",
@@ -140,7 +126,6 @@ func UpdateTaskHandler(c *gin.Context) {
         return
     }
     
-    // Конвертируем ID в int
     id, err := strconv.Atoi(taskReq.ID)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{
@@ -149,7 +134,6 @@ func UpdateTaskHandler(c *gin.Context) {
         return
     }
     
-    // Создаем объект задачи для БД
     task := &db.Task{
         ID:      id,
         Date:    taskReq.Date,
@@ -158,7 +142,6 @@ func UpdateTaskHandler(c *gin.Context) {
         Repeat:  taskReq.Repeat,
     }
     
-    // Обновляем задачу в БД
     err = db.UpdateTask(task)
     if err != nil {
         c.JSON(http.StatusNotFound, gin.H{
@@ -167,6 +150,5 @@ func UpdateTaskHandler(c *gin.Context) {
         return
     }
     
-    // Возвращаем пустой JSON при успехе
     c.JSON(http.StatusOK, gin.H{})
 }
