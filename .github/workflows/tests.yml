@@ -47,14 +47,12 @@ jobs:
       run: |
         docker run -d -p 7540:7540 --name todo-app todo-app:latest
         sleep 40
-        docker ps
-        echo "=== Checking if server is ready ==="
-        docker logs todo-app
-        echo "=== Testing server connectivity ==="
-        curl -f http://localhost:7540/ && echo "Server is responding!" || echo "Server not responding yet"
 
     - name: Run tests in container
       run: |
         docker exec todo-app go test ./tests/ -v
-        
+
+    - name: Run tests outside the container
+      run: |
+        go test ./tests/ -v
         
