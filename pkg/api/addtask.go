@@ -55,7 +55,7 @@ func AddTaskHandler(c *gin.Context) {
 
 func checkDate(task *db.Task) error {
 	now := time.Now()
-	today := now.Format(dateFormat)
+	today := now.Format(DateFormat)
 	
 	if task.Date == "today" {
 		task.Date = today
@@ -67,7 +67,7 @@ func checkDate(task *db.Task) error {
 		return nil
 	}
 	
-	t, err := time.Parse(dateFormat, task.Date)
+	t, err := time.Parse(DateFormat, task.Date)
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func checkDate(task *db.Task) error {
 		if task.Repeat == "" {
 			task.Date = today
 		} else {
-			next, err := NextDate(now, today, task.Repeat)
+			next, err := db.NextDate(now, today, task.Repeat)
 			if err != nil {
 				return err
 			}
