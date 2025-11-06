@@ -29,6 +29,7 @@ jobs:
         CGO_ENABLED=0 GOOS=linux go run ./pkg/server/main.go &
         sleep 100
         go test -run ^TestApp$ ./tests
+        
   docker-build:
     runs-on: ubuntu-latest
     needs: build
@@ -41,5 +42,9 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t todo-app:latest .
+        
+    - name: Run Docker Container
+      run: |
+        docker run -d -p 7540:7540 --name todo-app todo-app:latest
         
         
