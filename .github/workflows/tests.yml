@@ -47,6 +47,8 @@ jobs:
       run: |
         docker run -d -p 7540:7540 --name todo-app todo-app:latest
         sleep 10
+        docker ps
+        docker logs todo-app
 
     - name: Run tests for container
       run: |
