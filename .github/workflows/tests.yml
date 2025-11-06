@@ -48,6 +48,10 @@ jobs:
         docker run -d -p 7540:7540 --name todo-app todo-app:latest
         sleep 40
 
+    - name: Cheack Availability Pages
+      run: |
+        go test -run ^TestPages ./tests
+
     - name: Run tests in container
       run: |
         docker exec todo-app go test ./tests/ -v
