@@ -9,6 +9,8 @@ import (
 	"Final-Project-Yandex/pkg/db"
 )
 
+const DateFormat = "20060102"
+
 func AddTaskHandler(c *gin.Context) {
 	var req struct {
 		Date    string `json:"date"`
@@ -89,3 +91,4 @@ func checkDate(task *db.Task) error {
 	
 	return nil
 }
+
