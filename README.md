@@ -2,19 +2,19 @@
 
 **Установка и запуск**
 ```bash
-git clone https://github.com/108-Software/Final-Project-Yandex.git```
+git clone https://github.com/108-Software/Final-Project-Yandex.git
 
 ```bash
-cd Final-Project-Yandex```
+cd Final-Project-Yandex
 ```bash
-docker build -t task-manager .```
+docker build -t task-manager .
 
 ```bash
-docker run -d -p 7540:7540 --name task-manager-app task-manager```
+docker run -d -p 7540:7540 --name task-manager-app task-manager
 
 И перейдите по адресу:
 ```bash
-http://localhost:7540```
+http://localhost:7540
 
 
 ## Описание
