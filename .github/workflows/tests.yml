@@ -50,9 +50,8 @@ jobs:
         docker ps
         docker logs todo-app
 
-    - name: Run tests for container
+    - name: Run tests in container
       run: |
-        # Запускаем тесты на хосте, они подключаются к localhost:7540
-        go test ./tests/ -v
+        docker exec todo-app go test ./tests/ -v
         
         
