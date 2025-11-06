@@ -2,12 +2,20 @@
 
 **Установка и запуск**
 ```bash
-git clone https://github.com/108-Software/Final-Project-Yandex.git
-cd Final-Project-Yandex
-docker build -t task-manager .
-docker run -d -p 7540:7540 --name task-manager-app task-manager
-http://localhost:7540
-```
+git clone https://github.com/108-Software/Final-Project-Yandex.git```
+
+```bash
+cd Final-Project-Yandex```
+```bash
+docker build -t task-manager .```
+
+```bash
+docker run -d -p 7540:7540 --name task-manager-app task-manager```
+
+И перейдите по адресу:
+```bash
+http://localhost:7540```
+
 
 ## Описание
 Проект представляет собой удобный инструмент планирования задач с современным WEB-интерфейсом. Система позволяет эффективно управлять личными и рабочими задачами с поддержкой гибкого планирования повторений.
