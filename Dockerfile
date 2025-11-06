@@ -17,9 +17,10 @@ WORKDIR /app
 COPY . .
 
 ENV TODO_PORT=7540
-ENV TODO_DBFILE="/data/scheduler.db"
+ENV TODO_DBFILE="../pkg/db/scheduler.db"
 ENV TODO_PASSWORD=flisthdo
 
 EXPOSE 7540
 
 CMD ["go", "run", "./pkg/server/main.go"]
+
