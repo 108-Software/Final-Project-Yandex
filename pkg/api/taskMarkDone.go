@@ -73,7 +73,7 @@ func markTaskDone(id int, now time.Time) error {
         return db.DeleteTask(id)
     }
     
-    nextDate, err := NextDate(now, task.Date, task.Repeat)
+    nextDate, err := db.NextDate(now, task.Date, task.Repeat)
     if err != nil {
         return err
     }
