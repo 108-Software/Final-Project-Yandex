@@ -50,7 +50,8 @@ jobs:
 
     - name: Cheack Availability Pages
       run: |
-        go test -run ^TestPages ./tests
+        go test .\tests\for_containers_test.go
+        go test .\tests\addtask_4_test.go
 
     - name: Run tests in container
       run: |
