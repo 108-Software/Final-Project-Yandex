@@ -50,8 +50,7 @@ jobs:
 
     - name: Cheack Availability Pages
       run: |
-        go test -run TestPage .\tests\
-        go test -run TestAdd .\tests\
+        go test -run ^TestPagesAvailability$ .\tests\
 
     - name: Run tests in container
       run: |
