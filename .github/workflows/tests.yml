@@ -46,7 +46,7 @@ jobs:
     - name: Run Docker Container
       run: |
         docker run -d -p 7540:7540 --name todo-app todo-app:latest
-        sleep 10
+        sleep 200
         docker ps
         echo "=== Checking if server is ready ==="
         docker logs todo-app
