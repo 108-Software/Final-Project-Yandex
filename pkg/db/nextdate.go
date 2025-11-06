@@ -1,10 +1,10 @@
 package db
 
 import (
-	"time"
 	"errors"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const dateFormat = "20060102"
@@ -79,7 +79,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 			if err != nil {
 				return "", errors.New("неверный формат дня месяца")
 			}
-			if (day < -2 || day > 31) || day == 0 {
+			if (day < -31 || day > 31) || day == 0 {
 				return "", errors.New("недопустимый день месяца")
 			}
 			days[i] = day
@@ -106,9 +106,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 }
 
 func nextDateD(now time.Time, startDate time.Time, days int) string {
-	// Начинаем с startDate и добавляем интервалы пока не получим дату после now
 	current := startDate
-	
 	for {
 		current = current.AddDate(0, 0, days)
 		if current.After(now) {
@@ -118,24 +116,9 @@ func nextDateD(now time.Time, startDate time.Time, days int) string {
 }
 
 func nextDateY(now time.Time, startDate time.Time) string {
-	// Начинаем с startDate и добавляем годы пока не получим дату после now
 	current := startDate
-	
 	for {
-		nextYear := current.Year() + 1
-		nextMonth := current.Month()
-		nextDay := current.Day()
-		
-		// Проверяем валидность даты в следующем году
-		nextDate := time.Date(nextYear, nextMonth, nextDay, 0, 0, 0, 0, time.UTC)
-		
-		// Если дата невалидна (например, 29 февраля в невисокосном году),
-		// используем 1 марта следующего года
-		if nextDate.Month() != nextMonth || nextDate.Day() != nextDay {
-			nextDate = time.Date(nextYear, 3, 1, 0, 0, 0, 0, time.UTC)
-		}
-		
-		current = nextDate
+		current = current.AddDate(1, 0, 0)
 		if current.After(now) {
 			return current.Format(dateFormat)
 		}
@@ -143,16 +126,12 @@ func nextDateY(now time.Time, startDate time.Time) string {
 }
 
 func nextDateW(now time.Time, startDate time.Time, weekdays []int) string {
-	// Начинаем поиск со дня после now
 	current := now.AddDate(0, 0, 1)
-	
-	// Ищем ближайший подходящий день недели
 	for i := 0; i < 365; i++ {
 		currentWeekday := int(current.Weekday())
 		if currentWeekday == 0 {
 			currentWeekday = 7
 		}
-
 		for _, targetWeekday := range weekdays {
 			if currentWeekday == targetWeekday {
 				return current.Format(dateFormat)
@@ -160,8 +139,7 @@ func nextDateW(now time.Time, startDate time.Time, weekdays []int) string {
 		}
 		current = current.AddDate(0, 0, 1)
 	}
-	
-	return "" // не нашли подходящую дату
+	return ""
 }
 
 func nextDateMComplex(now time.Time, startDate time.Time, days, months []int) string {
@@ -172,43 +150,50 @@ func nextDateMComplex(now time.Time, startDate time.Time, days, months []int) st
 		}
 	}
 
-	// Начинаем поиск с дня после now
-	current := now.AddDate(0, 0, 1)
-	
-	// Ищем ближайшую подходящую дату в пределах 2 лет
+	current := now
 	for i := 0; i < 730; i++ {
+		current = current.AddDate(0, 0, 1)
 		currentMonth := int(current.Month())
+		currentYear := current.Year()
 		currentDay := current.Day()
 
-		// Проверяем месяц
-		monthMatch := false
-		for _, month := range months {
-			if currentMonth == month {
-				monthMatch = true
+		monthValid := false
+		for _, m := range months {
+			if currentMonth == m {
+				monthValid = true
 				break
 			}
 		}
 
-		if monthMatch {
-			// Проверяем день
+		if monthValid {
 			for _, day := range days {
-				if day < 0 {
-					// Отрицательные дни - с конца месяца
-					lastDay := lastDayOfMonth(current.Year(), time.Month(currentMonth))
-					daysFromEnd := lastDay.Day() - currentDay + 1
-					if -day == daysFromEnd {
-						return current.Format(dateFormat)
+				var checkDay int
+				var dayExists bool
+
+				if day > 0 {
+					lastDay := lastDayOfMonth(currentYear, time.Month(currentMonth))
+					if day > lastDay.Day() {
+						continue
 					}
-				} else if currentDay == day {
-					// Положительные дни
+					checkDay = day
+					dayExists = true
+				} else {
+					lastDay := lastDayOfMonth(currentYear, time.Month(currentMonth))
+					daysFromEnd := -day
+					if daysFromEnd > lastDay.Day() {
+						continue
+					}
+					checkDay = lastDay.Day() - daysFromEnd + 1
+					dayExists = true
+				}
+
+				if dayExists && currentDay == checkDay && current.After(startDate) {
 					return current.Format(dateFormat)
 				}
 			}
 		}
-		current = current.AddDate(0, 0, 1)
 	}
-	
-	return "" // не нашли подходящую дату
+	return ""
 }
 
 func lastDayOfMonth(year int, month time.Month) time.Time {
