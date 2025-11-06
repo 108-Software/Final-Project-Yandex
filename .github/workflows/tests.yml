@@ -46,5 +46,11 @@ jobs:
     - name: Run Docker Container
       run: |
         docker run -d -p 7540:7540 --name todo-app todo-app:latest
+        sleep 10
+
+    - name: Run tests for container
+      run: |
+        # Запускаем тесты на хосте, они подключаются к localhost:7540
+        go test ./tests/ -v
         
         
