@@ -34,16 +34,13 @@ func main() {
 
 	r := gin.Default()
 
-	// Сначала настраиваем статические файлы
 	r.Static("/css", "./web/css")
 	r.Static("/js", "./web/js")
 	r.Static("/images", "./web/images")
 	r.StaticFile("/favicon.ico", "./web/favicon.ico")
 
-	// Затем API маршруты
 	api.Init(r)
 
-	// В самом конце - обработчики HTML
 	r.GET("/", func(c *gin.Context) {
 		c.File("./web/index.html")
 	})
@@ -52,7 +49,6 @@ func main() {
 		c.File("./web/index.html")
 	})
 
-	// Обработчик для login.html
 	r.GET("/login.html", func(c *gin.Context) {
 		c.File("./web/login.html")
 	})
